@@ -25,14 +25,15 @@ const browserSyncReload = (done) => {
   done();
 };
 
-const sass = require('gulp-sass')(require('sass'));
-const sassGlob = require('gulp-sass-glob-use-forward');
-const plumber = require("gulp-plumber");
-const notify = require("gulp-notify");
-const postcss = require("gulp-postcss");
-const cssnext = require("postcss-cssnext");
-const sourcemaps = require("gulp-sourcemaps");
-const browsers = [
+// Sassコンパイル
+const sass = require('gulp-sass')(require('sass')); // sassコンパイル（DartSass対応）
+const sassGlob = require('gulp-sass-glob-use-forward'); // globパターンを使用可にする
+const plumber = require("gulp-plumber"); // エラーが発生しても強制終了させない
+const notify = require("gulp-notify"); // エラー発生時のアラート出力
+const postcss = require("gulp-postcss"); // PostCSS利用
+const cssnext = require("postcss-cssnext"); // 最新CSS使用を先取り
+const sourcemaps = require("gulp-sourcemaps"); // ソースマップ生成
+const browsers = [ // 対応ブラウザの指定
   'last 2 versions',
   '> 5%',
   'ie = 11',
@@ -40,38 +41,31 @@ const browsers = [
   'ios >= 8',
   'and_chr >= 5',
   'Android >= 5',
-];
-
-const postcssUncss = require('postcss-uncss');
-
+]
 const cssSass = () => {
   return src(srcPath.css)
-    .pipe(sourcemaps.init())
-    .pipe(plumber({
-      errorHandler: notify.onError('Error:<%= error.message %>')
+    .pipe(sourcemaps.init()) // ソースマップの初期化
+    .pipe(
+      plumber({ // エラーが出ても処理を止めない
+          errorHandler: notify.onError('Error:<%= error.message %>')
+      }))
+    .pipe(sassGlob()) // globパターンを使用可にする
+    .pipe(sass.sync({ // sassコンパイル
+      includePaths: ['src/sass'], // 相対パス省略
+      outputStyle: 'expanded' // 出力形式をCSSの一般的な記法にする
     }))
-    .pipe(sassGlob())
-    .pipe(sass.sync({
-      includePaths: ['src/sass'],
-      outputStyle: 'expanded'
-    }))
-    .pipe(postcss([
-      cssnext({
-        features: {
-          rem: false
-        }
-      }, browsers),
-      postcssUncss({
-        html: [distPath.html]  // uncssが適用するHTMLファイルのパス
-      })
-    ]))
-    .pipe(sourcemaps.write('./'))
-    .pipe(dest(distPath.css))
-    .pipe(notify({
+    .pipe(postcss([cssnext({
+      features: {
+        rem: false
+      }
+    },browsers)])) // 最新CSS使用を先取り
+    .pipe(sourcemaps.write('./')) // ソースマップの出力先をcssファイルから見たパスに指定
+    .pipe(dest(distPath.css)) //
+    .pipe(notify({ // エラー発生時のアラート出力
       message: 'Sassをコンパイルしてるんやで〜！',
       onLast: true
-    }));
-};
+    }))
+}
 
 const imagemin = require("gulp-imagemin");
 const imageminMozjpeg = require("imagemin-mozjpeg");
