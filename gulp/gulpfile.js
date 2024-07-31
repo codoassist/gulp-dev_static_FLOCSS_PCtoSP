@@ -35,6 +35,7 @@ const postcss = require("gulp-postcss"); // PostCSS利用
 const cssnext = require("postcss-cssnext"); // 最新CSS使用を先取り
 const sourcemaps = require("gulp-sourcemaps"); // ソースマップ生成
 const cleanCSS = require('gulp-clean-css'); // CSS圧縮
+const rename = require('gulp-rename'); // ファイル名変更
 const uglify = require('gulp-uglify'); // JavaScript圧縮
 const browsers = [ // 対応ブラウザの指定
   'last 2 versions',
@@ -62,11 +63,13 @@ const cssSass = () => {
         rem: false
       }
     },browsers)])) // 最新CSS使用を先取り
-    .pipe(cleanCSS()) // CSS圧縮
     .pipe(sourcemaps.write('./')) // ソースマップの出力先をcssファイルから見たパスに指定
-    .pipe(dest(distPath.css)) //
+    .pipe(dest(distPath.css)) // 元のCSSを出力
+    .pipe(cleanCSS()) // CSS圧縮
+    .pipe(rename({ suffix: '.min' })) // 圧縮されたCSSのファイル名に`.min`を追加
+    .pipe(dest(distPath.css)) // 圧縮されたCSSを出力
     .pipe(notify({ // エラー発生時のアラート出力
-      message: 'Sassをコンパイルしてるんやで〜！',
+      message: 'Sassをコンパイルして圧縮てるんやで〜！',
       onLast: true
     }))
 }
@@ -102,10 +105,12 @@ const jsUglify = () => {
     .pipe(plumber({ // エラーが出ても処理を止めない
       errorHandler: notify.onError('Error:<%= error.message %>')
     }))
+    .pipe(dest(distPath.js)) // 元のJSを出力
     .pipe(uglify()) // JavaScript圧縮
-    .pipe(dest(distPath.js))
+    .pipe(rename({ suffix: '.min' })) // 圧縮されたJSのファイル名に`.min`を追加
+    .pipe(dest(distPath.js)) // 圧縮されたJSを出力
     .pipe(notify({ // エラー発生時のアラート出力
-      message: 'JavaScriptを圧縮してるんやで〜！',
+      message: 'JavaScriptをコンパイルして圧縮てるんやで〜！',
       onLast: true
     }));
 };
