@@ -16,7 +16,6 @@
 - 画像はsrcフォルダのimagesの中に格納する
 - コンパイルされたCSSと圧縮された画像はdistフォルダの中に出力される
 - htmlはdist直下のhtmlファイルに直接記述する
-- jsはdist直下のjsファイルに直接記述する（圧縮なし）
 
 ## 備考
 - CSS設計はFLOCSS(https://github.com/hiloki/flocss )を採用
