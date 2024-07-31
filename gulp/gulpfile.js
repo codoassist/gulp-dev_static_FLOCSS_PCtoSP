@@ -3,19 +3,20 @@ const { src, dest, watch, series, parallel } = require("gulp");
 const srcBase = '../src';
 const distBase = '../dist';
 const srcPath = {
-  css: srcBase + '/sass/**/*.scss',  // 元のSassファイルのパス
-  img: srcBase + '/images/**/*',     // 元の画像ファイルのパス
+  css: srcBase + '/sass/**/*.scss',
+  img: srcBase + '/images/**/*',
+  js: srcBase + '/js/**/*.js', // JavaScriptのソースパス
 };
 const distPath = {
-  css: distBase + '/css/',           // 出力先のCSSディレクトリ
-  img: distBase + '/images/',        // 出力先の画像ディレクトリ
-  html: distBase + '/**/*.html',     // 監視対象のHTMLファイルのパス
-  js: distBase + '/js/**/*.js',      // 監視対象のJavaScriptファイルのパス
+  css: distBase + '/css/',
+  img: distBase + '/images/',
+  html: distBase + '/**/*.html',
+  js: distBase + '/js/', // JavaScriptの出力パス
 };
 
 const browserSync = require("browser-sync");
 const browserSyncOption = {
-  server: distBase,                   // ローカルサーバーのルートディレクトリ
+  server: distBase
 };
 const browserSyncFunc = () => {
   browserSync.init(browserSyncOption);
@@ -33,6 +34,8 @@ const notify = require("gulp-notify"); // エラー発生時のアラート出�
 const postcss = require("gulp-postcss"); // PostCSS利用
 const cssnext = require("postcss-cssnext"); // 最新CSS使用を先取り
 const sourcemaps = require("gulp-sourcemaps"); // ソースマップ生成
+const cleanCSS = require('gulp-clean-css'); // CSS圧縮
+const uglify = require('gulp-uglify'); // JavaScript圧縮
 const browsers = [ // 対応ブラウザの指定
   'last 2 versions',
   '> 5%',
@@ -59,6 +62,7 @@ const cssSass = () => {
         rem: false
       }
     },browsers)])) // 最新CSS使用を先取り
+    .pipe(cleanCSS()) // CSS圧縮
     .pipe(sourcemaps.write('./')) // ソースマップの出力先をcssファイルから見たパスに指定
     .pipe(dest(distPath.css)) //
     .pipe(notify({ // エラー発生時のアラート出力
@@ -93,19 +97,34 @@ const imgImagemin = () => {
     .pipe(dest(distPath.img));
 };
 
+const jsUglify = () => {
+  return src(srcPath.js)
+    .pipe(plumber({ // エラーが出ても処理を止めない
+      errorHandler: notify.onError('Error:<%= error.message %>')
+    }))
+    .pipe(uglify()) // JavaScript圧縮
+    .pipe(dest(distPath.js))
+    .pipe(notify({ // エラー発生時のアラート出力
+      message: 'JavaScriptを圧縮してるんやで〜！',
+      onLast: true
+    }));
+};
+
 const watchFiles = () => {
   watch(srcPath.css, series(cssSass, browserSyncReload));
   watch(srcPath.img, series(imgImagemin, browserSyncReload));
+  watch(srcPath.js, series(jsUglify, browserSyncReload)); // JavaScriptの変更を監視
   watch(distPath.html, series(browserSyncReload));
   watch(distPath.js, series(browserSyncReload));
 };
 
 const del = require('del');
 const delPath = {
-  css: distBase + '/css/style.css',      // 削除するCSSファイルのパス
-  cssMap: distBase + '/css/style.css.map',  // 削除するCSSのソースマップファイルのパス
-  img: distBase + '/images/',             // 削除する画像ディレクトリのパス
+  css: distBase + '/css/style.css',
+  cssMap: distBase + '/css/style.css.map',
+  img: distBase + '/images/'
 };
+
 const clean = (done) => {
   del(delPath.css, { force: true });
   del(delPath.cssMap, { force: true });
@@ -113,4 +132,4 @@ const clean = (done) => {
   done();
 };
 
-exports.default = series(series(clean, imgImagemin, cssSass), parallel(watchFiles, browserSyncFunc));
+exports.default = series(series(clean, imgImagemin, cssSass, jsUglify), parallel(watchFiles, browserSyncFunc));
