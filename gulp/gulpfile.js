@@ -46,13 +46,13 @@ const browsers = [ // 対応ブラウザの指定
   'and_chr >= 5',
   'Android >= 5',
 ]
+
 const cssSass = () => {
   return src(srcPath.css)
     .pipe(sourcemaps.init()) // ソースマップの初期化
-    .pipe(
-      plumber({ // エラーが出ても処理を止めない
-          errorHandler: notify.onError('Error:<%= error.message %>')
-      }))
+    .pipe(plumber({ // エラーが出ても処理を止めない
+      errorHandler: notify.onError('Error:<%= error.message %>')
+    }))
     .pipe(sassGlob()) // globパターンを使用可にする
     .pipe(sass.sync({ // sassコンパイル
       includePaths: ['src/sass'], // 相対パス省略
@@ -62,14 +62,14 @@ const cssSass = () => {
       features: {
         rem: false
       }
-    },browsers)])) // 最新CSS使用を先取り
+    }, browsers)])) // 最新CSS使用を先取り
     .pipe(sourcemaps.write('./')) // ソースマップの出力先をcssファイルから見たパスに指定
     .pipe(dest(distPath.css)) // 元のCSSを出力
     .pipe(cleanCSS()) // CSS圧縮
     .pipe(rename({ suffix: '.min' })) // 圧縮されたCSSのファイル名に`.min`を追加
     .pipe(dest(distPath.css)) // 圧縮されたCSSを出力
     .pipe(notify({ // エラー発生時のアラート出力
-      message: 'Sassをコンパイルして圧縮てるんやで〜！',
+      message: 'Sassをコンパイルして圧縮してるんやで〜！',
       onLast: true
     }))
 }
@@ -110,7 +110,7 @@ const jsUglify = () => {
     .pipe(rename({ suffix: '.min' })) // 圧縮されたJSのファイル名に`.min`を追加
     .pipe(dest(distPath.js)) // 圧縮されたJSを出力
     .pipe(notify({ // エラー発生時のアラート出力
-      message: 'JavaScriptをコンパイルして圧縮てるんやで〜！',
+      message: 'JavaScriptをコンパイルして圧縮してるんやで〜！',
       onLast: true
     }));
 };
