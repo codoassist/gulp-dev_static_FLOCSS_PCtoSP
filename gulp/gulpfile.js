@@ -125,7 +125,7 @@ const jsCopy = (done) => {
     }))
     .pipe(dest(distPath.js))
     .pipe(notify({
-      message: 'swiper-bundle.min.jsをコピーしたで！',
+      message: 'swiper-bundle.min.jsをコピーしました！',
       onLast: true
     }));
   done();
